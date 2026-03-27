@@ -13,6 +13,17 @@ print(f'Model loaded on {model.device}')
 
 app = Flask(__name__)
 
+@app.after_request
+def add_cors(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    response.headers['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS'
+    return response
+
+@app.route('/medgemma', methods=['OPTIONS'])
+def medgemma_options():
+    return '', 204
+
 DEFAULT_PROMPT = (
     "You are an expert medical imaging analyst. "
     "Analyze this medical image in detail. Describe the imaging modality, "
@@ -51,7 +62,7 @@ def analyze():
         generated = output_ids[0][inputs['input_ids'].shape[-1]:]
         text = processor.decode(generated, skip_special_tokens=True)
 
-        return jsonify({'text': text, 'inference_time_ms': inference_ms, 'model': 'google/medgemma-4b-it'})
+        return jsonify({'analysis': text, 'inference_time_ms': inference_ms, 'model': 'google/medgemma-4b-it'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
